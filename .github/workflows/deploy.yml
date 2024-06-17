@@ -3,10 +3,10 @@ name: AWS CLI Configuration
 on:
   push:
     branches:
-      - main  # Replace with your branch name
+      - master  # Replace with your branch name
   pull_request:
     branches:
-      - main  # Replace with your branch name
+      - master  # Replace with your branch name
 
 jobs:
   configure-aws-cli:
