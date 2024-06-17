@@ -36,4 +36,4 @@ jobs:
             git pull origin master  # Ensure latest changes are pulled
             npm install           # Install any new dependencies
             npm run build         # Build the application
-            sudo systemctl restart your-nestjs-app.service  # Restart your application service
+            sudo systemctl restart app.service.ts  # Restart your application service
