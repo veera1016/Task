@@ -1,18 +1,13 @@
-name: Deploy to EC2
+name: Configure AWS Credentials
 
 on:
-  push:
-    branches:
-      - master
-      
+  workflow_dispatch:  # Optionally trigger manually
+
 jobs:
-  deploy:
+  configure:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Install AWS CLI
         run: |
           sudo apt-get update
@@ -26,22 +21,3 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set region us-east-1
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: 22
-          script: |
-            cd /home/ubuntu/your-nestjs-app
-            git pull origin master # Ensure latest changes are pulled
-            npm install           # Install any new dependencies
-            npm run build         # Build the application
-            sudo systemctl restart your-nestjs-app.service  # Restart your application service
