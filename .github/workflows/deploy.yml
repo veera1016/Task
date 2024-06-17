@@ -16,7 +16,7 @@ jobs:
       - name: Install Node.js and npm
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '14'
 
       - name: Install dependencies
         run: npm install
@@ -32,8 +32,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /home/ubuntu/task
-            git pull origin master  # Ensure latest changes are pulled
+            cd /home/ubuntu/your-nestjs-app
+            git pull origin main  # Ensure latest changes are pulled
             npm install           # Install any new dependencies
             npm run build         # Build the application
-            sudo systemctl restart app.service.ts  # Restart your application service
+            sudo systemctl restart your-nestjs-app.service  # Restart your application service
