@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -24,6 +24,11 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: Debug Environment Variables
+        run: |
+          echo "EC2_PUBLIC_DNS=${{ secrets.EC2_PUBLIC_DNS }}"
+          echo "SSH_PRIVATE_KEY length: ${#secrets.SSH_PRIVATE_KEY}"
+
       - name: Add SSH key
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
@@ -32,7 +37,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
             cd ~/nest/samples/01-cats-app
             git pull origin master
             npm install
@@ -41,4 +46,3 @@ jobs:
           EOF
         env:
           EC2_PUBLIC_DNS: ${{ secrets.EC2_PUBLIC_DNS }}
-          REPO: ${{ secrets.REPO }}
