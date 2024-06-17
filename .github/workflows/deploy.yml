@@ -31,7 +31,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${EC2_PUBLIC_DNS} << 'EOF'
             cd ~/nest/samples/01-cats-app
-            git pull origin main
+            git pull origin master
             npm install
             npm run build
             pm2 restart all || pm2 start dist/main.js
