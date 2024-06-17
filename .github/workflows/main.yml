@@ -1,0 +1,38 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create empty private_key.pem file
+        run: echo "" > private_key.pem
+
+      - name: Set private key permissions
+        run: chmod 400 private_key.pem
+
+      - name: Debug EC2_PUBLIC_DNS
+        run: echo "EC2_PUBLIC_DNS is $EC2_PUBLIC_DNS"
+
+      - name: SSH into EC2 and deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EC2_PUBLIC_DNS: ${{ secrets.EC2_PUBLIC_DNS }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${EC2_PUBLIC_DNS} << 'SSH_EOF'
+            cd ~/nest/samples/01-cats-app
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart all || pm2 start dist/main.js
+          SSH_EOF
