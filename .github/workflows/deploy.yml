@@ -38,9 +38,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
-          script: |
-            cd /home/ubuntu/your-nestjs-app
-            git pull origin master  # Ensure latest changes are pulled
-            npm install           # Install any new dependencies
-            npm run build         # Build the application
-            sudo systemctl restart your-nestjs-app.service  # Restart your application service
+          run: |
+          cd ~/nest/samples/01-cats-app
+          git pull origin master
+          npm install
+          npm run build
+          pm2 restart all || pm2 start dist/main.js
+        EOF
