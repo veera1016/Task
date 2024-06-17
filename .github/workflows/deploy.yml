@@ -38,8 +38,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd ~/helloworld-nestjs-ec2/
-            git pull origin main
+            cd ~/Task/
+            git pull origin master
             npm run build
             pm2 restart helloworld-nextjs-ec2
 
