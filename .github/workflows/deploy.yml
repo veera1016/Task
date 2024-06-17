@@ -38,10 +38,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd ~/Task/
+            cd ~/Ashok/
             git pull origin master
             npm run build
-            pm2 restart Task
+            pm2 restart Ashok
 
  
 
