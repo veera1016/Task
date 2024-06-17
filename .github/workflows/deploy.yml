@@ -38,10 +38,11 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd ~/Ashok/
+            cd /home/ubuntu/nest-hello-world
             git pull origin master
+            npm install
             npm run build
-            pm2 restart Ashok
+            pm2 restart nest-hello-world
 
  
 
