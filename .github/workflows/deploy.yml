@@ -1,8 +1,9 @@
 name: Configure AWS Credentials
 
 on:
-  workflow_dispatch:  # Optionally trigger manually
-
+  push:
+    branches:
+      - master
 jobs:
   configure:
     runs-on: ubuntu-latest
