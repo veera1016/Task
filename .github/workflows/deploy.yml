@@ -41,7 +41,7 @@ jobs:
             cd ~/Task/
             git pull origin master
             npm run build
-            pm2 restart helloworld-nextjs-ec2
+            pm2 restart Task
 
  
 
