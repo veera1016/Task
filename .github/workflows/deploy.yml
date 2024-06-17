@@ -1,38 +1,45 @@
-name: Deploy to EC2
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Create empty private_key.pem file
-        run: echo "" > private_key.pem
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
 
-      - name: Set private key permissions
-        run: chmod 400 private_key.pem
+      - name: Install dependencies
+        run: npm install
 
-      - name: Debug EC2_PUBLIC_DNS
-        run: echo "EC2_PUBLIC_DNS is $EC2_PUBLIC_DNS"
+      - name: Run tests
+        run: npm run test
 
-      - name: SSH into EC2 and deploy
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          EC2_PUBLIC_DNS: ${{ secrets.EC2_PUBLIC_DNS }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Add SSH key
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${EC2_PUBLIC_DNS} << 'EOF'
-            cd ~/nest/samples/01-cats-app
-            git pull origin master
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_rsa
+          chmod 600 /home/runner/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_DNS }} >> /home/runner/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
+            cd your-nestjs-repo
+            git pull origin main
             npm install
             npm run build
-            pm2 restart all || pm2 start dist/main.js
+            pm2 restart all || pm2 start dist/main.js --name nestjs-app
           EOF
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          EC2_PUBLIC_DNS: ${{ secrets.EC2_PUBLIC_DNS }}
+          REPO: ${{ secrets.REPO }}
