@@ -37,6 +37,7 @@ environment: dev
       username: ${{ secrets.EC2_USERNAME }}
       key: ${{ secrets.EC2_PRIVATE_KEY }}
       port: 22
+      
       script: |
        cd /home/ubuntu
        git pull origin master  # Ensure latest changes are pulled
