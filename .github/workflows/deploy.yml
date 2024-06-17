@@ -6,7 +6,7 @@ on:
 jobs:
   configure:
     runs-on: ubuntu-latest
-    
+  
     steps:
       - name: Install AWS CLI
         run: |
