@@ -16,7 +16,7 @@ jobs:
       - name: Install Node.js and npm
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install
@@ -25,16 +25,6 @@ jobs:
         run: npm run build
 
       - name: Deploy to EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: 22
-          source: ./
-          target: /home/ubuntu/your-nestjs-app
-
-      - name: SSH into EC2 and restart application
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -42,7 +32,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /home/ubuntu/your-nestjs-app
-            npm install
-            npm run build
-            sudo systemctl restart your-nestjs-app.service
+            cd /home/ubuntu/task
+            git pull origin master  # Ensure latest changes are pulled
+            npm install           # Install any new dependencies
+            npm run build         # Build the application
+            sudo systemctl restart your-nestjs-app.service  # Restart your application service
