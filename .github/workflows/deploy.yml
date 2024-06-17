@@ -3,40 +3,51 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
-    
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      run: npm install
 
-      - name: Run build
-        run: npm run build
+    - name: Run tests
+      run: npm run test
 
-      - name: Deploy to EC2
-        env:
-          AWS_REGION: ap-south-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          PRIVATE_SSH_KEY: ${{ secrets.AWS_SSH_KEY }}
-          SERVER_PUBLIC_IP: ${{ secrets.AWS_PUBLIC_KEY }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-        run: |
-          ssh -i $EC2_KEY $EC2_USER@$EC2_HOST << 'EOF'
-            cd /path/to/your/app
-            git pull origin master
-            npm install
-            npm run build
-            pm2 restart all
-          EOF
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to EC2
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        EC2_PUBLIC_DNS: ${{ secrets.EC2_PUBLIC_DNS }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+        chmod 400 private_key.pem
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${{ secrets.EC2_PUBLIC_DNS }} << 'EOF'
+          cd ~/nest/samples/01-cats-app
+          git pull origin main
+          npm install
+          npm run build
+          pm2 restart all || pm2 start dist/main.js
+        EOF
