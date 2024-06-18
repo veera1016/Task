@@ -38,12 +38,39 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/nest-hello-world
+            #!/bin/bash
+
+            # Define project directory
+            PROJECT_DIR="/home/ubuntu/nest-hello-world"
+
+            # Navigate to project directory
+            if [ -d "$PROJECT_DIR" ]; then
+              cd "$PROJECT_DIR"
+            else
+              echo "Directory $PROJECT_DIR does not exist."
+              exit 1
+            fi
+
+            # Pull latest changes from git
             git pull origin master
-            npm install
+
+            # Check if package.json exists
+            if [ -f "package.json" ]; then
+              # Install dependencies
+              npm install
+            else
+              echo "package.json not found in $PROJECT_DIR."
+              exit 1
+            fi
+
+            # Build the project
             npm run build
+
+            # Check if pm2 is installed, if not install it
+            if ! command -v pm2 &> /dev/null; then
+              echo "pm2 could not be found, installing..."
+              npm install -g pm2
+            fi
+
+            # Restart the application with PM2
             pm2 restart nest-hello-world
-
- 
-
-
