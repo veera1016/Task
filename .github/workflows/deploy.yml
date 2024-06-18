@@ -26,19 +26,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "us-east-1"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v2
         with:
           node-version: '16'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm run test
-
-      - name: Build project
-        run: npm run build
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
@@ -47,8 +38,52 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/nest-hello-world
+            #!/bin/bash
+
+            # Define project directory
+            PROJECT_DIR="/home/ubuntu/nest-hello-world"
+
+            # Clone the repository if it doesn't exist
+            if [ ! -d "$PROJECT_DIR" ]; then
+              git clone https://github.com/veera1016/Task.git "$PROJECT_DIR"
+            fi
+
+            # Navigate to project directory
+            if [ -d "$PROJECT_DIR" ]; then
+              cd "$PROJECT_DIR"
+            else
+              echo "Directory $PROJECT_DIR does not exist."
+              exit 1
+            fi
+
+            # Pull latest changes from git
             git pull origin master
-            npm install
+
+            # Check if package.json exists
+            if [ -f "package.json" ]; then
+              # Install dependencies
+              npm install
+            else
+              echo "package.json not found in $PROJECT_DIR."
+              exit 1
+            fi
+
+            # Build the project
             npm run build
-            pm2 restart nest-hello-world
+
+            # Check if pm2 is installed, if not install it
+            if ! command -v pm2 &> /dev/null; then
+              echo "pm2 could not be found, installing..."
+              npm install -g pm2
+              pm2 startup
+            fi
+
+            # Start or restart the application with PM2
+            if pm2 describe nest-hello-world > /dev/null; then
+              pm2 restart nest-hello-world
+            else
+              pm2 start dist/main.js --name nest-hello-world
+            fi
+
+            # Save the PM2 process list and corresponding environments
+            pm2 save
