@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-    
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -43,20 +43,18 @@ jobs:
             # Define project directory
             PROJECT_DIR="/home/ubuntu/nest-hello-world"
 
-            # Clone the repository if it doesn't exist
-            if [ ! -d "$PROJECT_DIR" ]; then
-              git clone https://github.com/veera1016/Task.git "$PROJECT_DIR"
+            # Remove the existing directory if it exists to avoid conflicts
+            if [ -d "$PROJECT_DIR" ]; then
+              rm -rf "$PROJECT_DIR"
             fi
+
+            # Clone the repository
+            git clone https://github.com/veera1016/Task.git "$PROJECT_DIR"
 
             # Navigate to project directory
-            if [ -d "$PROJECT_DIR" ]; then
-              cd "$PROJECT_DIR"
-            else
-              echo "Directory $PROJECT_DIR does not exist."
-              exit 1
-            fi
+            cd "$PROJECT_DIR" || { echo "Directory $PROJECT_DIR does not exist."; exit 1; }
 
-            # Pull latest changes from git
+            # Pull the latest changes from the master branch
             git pull origin master
 
             # Check if package.json exists
