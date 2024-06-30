@@ -14,18 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "us-east-1"
-
       - name: Install Node.js and npm
         uses: actions/setup-node@v2
         with:
@@ -38,50 +26,26 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            #!/bin/bash
+            # Navigate to your project directory
+            cd Task
 
-            # Define project directory
-            PROJECT_DIR="/home/ubuntu/nest-hello-world"
-
-            # Remove the existing directory if it exists to avoid conflicts
-            if [ -d "$PROJECT_DIR" ]; then
-              rm -rf "$PROJECT_DIR"
-            fi
-
-            # Clone the repository
-            git clone https://github.com/veera1016/Task.git "$PROJECT_DIR"
-
-            # Navigate to project directory
-            cd "$PROJECT_DIR" || { echo "Directory $PROJECT_DIR does not exist."; exit 1; }
-
-            # Pull the latest changes from the master branch
+            # Pull the latest code from the master branch
             git pull origin master
 
-            # Check if package.json exists
-            if [ -f "package.json" ]; then
-              # Install dependencies
-              npm install
-            else
-              echo "package.json not found in $PROJECT_DIR."
-              exit 1
-            fi
+            # Install dependencies
+            npm install
 
             # Build the project
             npm run build
 
-            # Check if pm2 is installed, if not install it
-            if ! command -v pm2 &> /dev/null; then
-              echo "pm2 could not be found, installing..."
-              npm install -g pm2
-              pm2 startup
-            fi
+            # Install PM2 globally
+            npm install -g pm2
+
+            # Set up PM2 to run on startup
+            pm2 startup ubuntu
 
             # Start or restart the application with PM2
-            if pm2 describe nest-hello-world > /dev/null; then
-              pm2 restart nest-hello-world
-            else
-              pm2 start dist/main.js --name nest-hello-world
-            fi
+            pm2 restart nest-hello-world || pm2 start dist/main.js --name nest-hello-world
 
             # Save the PM2 process list and corresponding environments
             pm2 save
