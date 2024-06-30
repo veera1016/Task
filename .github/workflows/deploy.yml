@@ -30,7 +30,7 @@ jobs:
             cd /home/ubuntu/Task
 
             # Add exception for safe directory
-            git config --global --add safe.directory /home/ubuntu/Task
+            git config --global --add safe.directory /home/***/Task
 
             # Pull the latest code from the master branch
             git pull origin master
@@ -49,8 +49,12 @@ jobs:
             # Set up PM2 to run on startup
             pm2 startup ubuntu -u ${{ secrets.EC2_USERNAME }}
 
-            # Start or restart the application with PM2
-            pm2 restart nest-hello-world || pm2 start dist/main.js --name nest-hello-world
+            # Check if the application is already running
+            if pm2 list | grep nest-hello-world; then
+              pm2 restart nest-hello-world
+            else
+              pm2 start dist/main.js --name nest-hello-world
+            fi
 
             # Save the PM2 process list and corresponding environments
             pm2 save
