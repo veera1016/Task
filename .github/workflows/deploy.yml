@@ -29,25 +29,14 @@ jobs:
             # Navigate to your project directory
             cd /home/ubuntu/Task
 
-            # Add exception for safe directory
-            git config --global --add safe.directory /home/***/Task
-
             # Pull the latest code from the master branch
             git pull origin master
-
-            # Install Node.js, npm, and PM2
-            curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-            sudo npm install -g pm2
 
             # Install dependencies
             npm install
 
             # Build the project
             npm run build
-
-            # Set up PM2 to run on startup
-            pm2 startup ubuntu -u ${{ secrets.EC2_USERNAME }}
 
             # Check if the application is already running
             if pm2 list | grep nest-hello-world; then
