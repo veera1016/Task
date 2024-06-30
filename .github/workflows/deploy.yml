@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,8 +29,16 @@ jobs:
             # Navigate to your project directory
             cd /home/ubuntu/Task
 
+            # Add exception for safe directory
+            git config --global --add safe.directory /home/ubuntu/Task
+
             # Pull the latest code from the master branch
             git pull origin master
+
+            # Install Node.js, npm, and PM2
+            curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+            sudo npm install -g pm2
 
             # Install dependencies
             npm install
@@ -38,11 +46,8 @@ jobs:
             # Build the project
             npm run build
 
-            # Install PM2 globally
-            npm install -g pm2
-
             # Set up PM2 to run on startup
-            pm2 startup ubuntu
+            pm2 startup ubuntu -u ${{ secrets.EC2_USERNAME }}
 
             # Start or restart the application with PM2
             pm2 restart nest-hello-world || pm2 start dist/main.js --name nest-hello-world
